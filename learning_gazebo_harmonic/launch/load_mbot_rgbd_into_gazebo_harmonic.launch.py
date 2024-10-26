@@ -15,9 +15,9 @@ def generate_launch_description():
     # Include the robot_state_publisher launch file, provided by our own package. Force sim time to be enabled
     # !!! MAKE SURE YOU SET THE PACKAGE NAME CORRECTLY !!!
 
-    package_name='learning_gazebo_fortress' #<--- CHANGE ME
+    package_name='learning_gazebo_harmonic' #<--- CHANGE ME
     pkg_path = os.path.join(get_package_share_directory(package_name))
-    xacro_file = os.path.join(pkg_path,'urdf','mbot_with_lidar_gazebo_fortress.xacro')
+    xacro_file = os.path.join(pkg_path,'urdf','mbot_with_rgbd_gazebo_harmonic.xacro')
     world_file = os.path.join(pkg_path,'worlds','empty.sdf')
     robot_description_config = xacro.process_file(xacro_file)
     
@@ -59,11 +59,20 @@ def generate_launch_description():
         package='ros_gz_bridge',
         executable='parameter_bridge',
         parameters=[{
-            'config_file': os.path.join(get_package_share_directory(package_name), 'config', 'ros_gz_bridge_mbot_lidar.yaml'),
+            'config_file': os.path.join(get_package_share_directory(package_name), 'config', 'ros_gz_bridge_mbot_rgbd.yaml'),
             'qos_overrides./tf_static.publisher.durability': 'transient_local',
         }],
         output='screen'
     )
+
+    static_tf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_transform_publisher',
+        arguments=['0', '0', '0', '0', '0', '0', 'rgbd_frame_optical','mbot/base_footprint/rgbd_camera'],
+        output='screen'
+    )
+
    
     # Launch them all!
     return LaunchDescription([
@@ -71,4 +80,5 @@ def generate_launch_description():
         spawn_entity,
         ros_gz_bridge,
         node_robot_state_publisher,
+        static_tf,
     ])
