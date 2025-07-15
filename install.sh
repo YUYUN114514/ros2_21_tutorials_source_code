@@ -42,8 +42,11 @@ sudo apt install -y curl gnupg lsb-release software-properties-common
 sudo mkdir -p /usr/share/keyrings
 
 # 下载并添加ROS2 GPG密钥
-sudo rm -f /usr/share/keyrings/ros-archive-keyring.gpg
-curl -sSLf https://gitlab.com/qiaolongli/qiaolongLi.gitlab.io/-/raw/master/ros.asc?ref_type=heads | sudo gpg --dearmor -o /usr/share/keyrings/ros-archive-keyring.gpg
+# sudo rm -f /usr/share/keyrings/ros-archive-keyring.gpg
+if [ ! -f /usr/share/keyrings/ros-archive-keyring.gpg ]; then
+    curl -fsSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key | sudo gpg --dearmor -o /usr/share/keyrings/ros-archive-keyring.gpg
+fi
+
 # 验证密钥文件是否存在
 if [ ! -f "/usr/share/keyrings/ros-archive-keyring.gpg" ]; then
     echo "错误：无法创建ROS2 GPG密钥文件"
@@ -62,13 +65,14 @@ sudo apt update
 echo "安装ROS2 ${ROS2_VERSION}..."
 sudo apt install -y ros-${ROS2_VERSION}-desktop
 
-echo "安装开发工具和依赖..."
+echo "安装开发工具和依赖 ${ROS2_VERSION}..."
 sudo apt install -y \
-    ros-$ROS_DISTRO-rosidl-default-generators \
-    ros-$ROS_DISTRO-rosidl-default-runtime \
+    ros-${ROS2_VERSION}-rosidl-default-generators \
+    ros-${ROS2_VERSION}-rosidl-default-runtime \
     python3-colcon-common-extensions \
     python3-colcon-ros \
     python3-colcon-cmake \
+    python3-rosdep \
     build-essential \
     python3-flake8  \
     python3-pytest-cov \
@@ -114,7 +118,7 @@ if [ ! -f "/etc/ros/rosdep/sources.list.d/20-default.list" ]; then
     sudo wget https://mirrors.tuna.tsinghua.edu.cn/github-raw/ros/rosdistro/master/rosdep/sources.list.d/20-default.list -O /etc/ros/rosdep/sources.list.d/20-default.list
 
     # 初始化rosdep
-    sudo rosdep init || true
+    # sudo rosdep init || true
 
     # 更新rosdep
     echo "更新rosdep..."
@@ -145,7 +149,7 @@ if ! grep -q "source /opt/ros/${ROS2_VERSION}/setup.bash" ~/.bashrc; then
 fi
 
 # 立即应用环境变量
-source ~/.bashrc
+source /opt/ros/${ROS2_VERSION}/setup.bash
 
 echo "ROS2 ${ROS2_VERSION} 安装完成！"
 
